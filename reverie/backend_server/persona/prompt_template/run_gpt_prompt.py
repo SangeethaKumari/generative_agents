@@ -423,7 +423,7 @@ def run_gpt_prompt_task_decomp(persona,
     return gpt_response
 
   def get_fail_safe(): 
-    fs = ["asleep"]
+    fs = [["asleep", 0]]
     return fs
 
   gpt_param = {"engine": "text-davinci-003", "max_tokens": 1000, 
@@ -457,14 +457,16 @@ def run_gpt_prompt_task_decomp(persona,
 
   fin_output = []
   time_sum = 0
-  for i_task, i_duration in output: 
-    time_sum += i_duration
-    # HM?????????
-    # if time_sum < duration: 
-    if time_sum <= duration: 
-      fin_output += [[i_task, i_duration]]
-    else: 
-      break
+  try: 
+    for i_task, i_duration in output: 
+      time_sum += i_duration
+      if time_sum <= duration: 
+        fin_output += [[i_task, i_duration]]
+      else: 
+        break
+  except: 
+    fin_output = [[task, duration]]
+
   ftime_sum = 0
   for fi_task, fi_duration in fin_output: 
     ftime_sum += fi_duration
@@ -1633,7 +1635,7 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
   prompt_input = create_prompt_input(conversation, test_input)  ########
   prompt = generate_prompt(prompt_input, prompt_template)
   example_output = "conversing about what to eat for lunch" ########
-  special_instruction = "The output must continue the sentence above by filling in the <fill in> tag. Don't start with 'this is a conversation about...' Just finish the sentence but do not miss any important details (including who are chatting)." ########
+  special_instruction = "The output should ONLY include the part of the sentence that completes the last line in the schedule above. DO NOT include any introductory text, preamble, or conversational filler. ONLY the activity string." ########
   fail_safe = get_fail_safe() ########
   output = ChatGPT_safe_generate_response(prompt, example_output, special_instruction, 3, fail_safe,
                                           __chat_func_validate, __chat_func_clean_up, True)

@@ -1,0 +1,367 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "generative-agents"
+version = "0.1.0"
+description = "Generative Agents: Interactive Simulacra of Human Behavior"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+keywords = ["django", "machine-learning", "data-analysis", "nlp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django :: 2.2",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# Core production dependencies - ordered by category
+dependencies = [
+    # Web Framework & ASGI
+    "Django>=2.2,<3.0", # Pinned to 2.2 for compatibility, but allow patch updates
+    "asgiref>=3.5.2,<4.0",
+    "aiohttp>=3.8.3,<4.0",
+    "aiosignal>=1.3.1,<2.0",
+    "async-timeout>=4.0.2,<5.0",
+    "async-generator>=1.10,<2.0",
+    "gunicorn>=20.1.0,<21.0",
+    # CORS & Storage
+    "django-cors-headers>=2.5.3,<4.0",
+    "django-storages-redux>=1.3.3,<2.0",
+    "boto>=2.49.0,<3.0", # Consider upgrading to boto3
+    "botocore>=1.29.43,<2.0",
+    "s3transfer>=0.6.0,<1.0",
+    # Database
+    "psycopg2-binary>=2.9.5,<3.0",
+    "dj-database-url>=0.5.0,<2.0",
+    "sqlparse>=0.4.3,<1.0",
+    # Data Processing & ML
+    "pandas>=2.0.3,<3.0",
+    "numpy>=1.25.2,<2.0",
+    "scikit-learn>=1.3.0,<2.0",
+    "scikit-posthocs>=0.7.0,<1.0",
+    "scipy>=1.11.1,<2.0",
+    "statsmodels>=0.13.5,<1.0",
+    "gensim>=4.3.0,<5.0", # ← UPGRADED: 3.8.0 requires numpy <=1.16.1 (incompatible)
+    # NLP
+    "nltk>=3.6.5,<4.0",
+    "regex>=2021.11.10,<2024.0", # Latest regex version
+    # Visualization
+    "matplotlib>=3.7.2,<4.0",
+    "seaborn>=0.12.2,<1.0",
+    "yellowbrick>=1.5,<2.0",
+    "Pillow>=8.4.0,<10.0",
+    # API & Async
+    "openai>=0.27.0,<1.0",
+    "requests>=2.26.0,<3.0",
+    "urllib3>=1.26.7,<2.0",
+    "idna>=3.3,<4.0",
+    "charset-normalizer>=2.0.12,<4.0",
+    "certifi>=2021.10.8,<2025.0",
+    # Utilities
+    "click>=8.0.3,<9.0",
+    "tqdm>=4.62.3,<5.0",
+    "python-dateutil>=2.8.2,<3.0",
+    "pytz>=2021.3,<2024.0",
+    "attrs>=22.2.0,<24.0",
+    "six>=1.16.0,<2.0",
+    "packaging>=23.0,<24.0",
+    "joblib>=1.1.1,<2.0",
+    "threadpoolctl>=3.0.0,<4.0",
+    "smart-open>=5.2.1,<7.0",
+    # Sorting
+    "sortedcontainers>=2.4.0,<3.0",
+    # Dependencies of dependencies (for explicit clarity)
+    "jmespath>=1.0.1,<2.0",
+    "kiwisolver>=1.4.4,<2.0",
+    "multidict>=6.0.4,<7.0", # Fixed typo: was "multipdict"
+    "yarl>=1.8.2,<2.0",
+    "frozenlist>=1.3.3,<2.0",
+    "pycparser>=2.21,<3.0",
+    "pyparsing>=3.0.6,<4.0",
+    "PySocks>=1.7.1,<2.0",
+    "zipp>=3.6.0,<4.0",
+    "importlib-metadata>=4.8.2,<7.0",
+    "typing-extensions>=4.0.0,<5.0",
+    "exceptiongroup>=1.1.0,<2.0",
+    "selenium>=4.32.0",
+]
+
+[project.optional-dependencies]
+# Web testing and browser automation
+selenium = [
+    "selenium>=4.8.2,<5.0",
+    "trio>=0.22.0,<1.0",
+    "trio-websocket>=0.9.2,<1.0",
+    "outcome>=1.2.0,<2.0",
+    "sniffio>=1.3.0,<2.0",
+    "wsproto>=1.2.0,<2.0",
+    "h11>=0.14.0,<1.0",
+]
+
+# Game theory and ranking
+gaming = [
+    "trueskill>=0.4.5,<1.0",
+]
+
+# Development tools
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-django>=4.5.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "pre-commit>=3.0.0",
+]
+
+# Testing utilities
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-django>=4.5.0",
+    "pytest-asyncio>=0.21.0",
+    "faker>=18.0.0",
+    "factory-boy>=3.2.0",
+]
+
+# Documentation
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+    "sphinx-autodoc-typehints>=1.22.0",
+]
+
+# All extra features
+all = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-django>=4.5.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "isort>=5.12.0",
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+    "selenium>=4.8.2,<5.0",
+    "trueskill>=0.4.5,<1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourname/data-analysis-app"
+Documentation = "https://data-analysis-app.readthedocs.io"
+Repository = "https://github.com/yourname/data-analysis-app.git"
+Issues = "https://github.com/yourname/data-analysis-app/issues"
+
+[tool.uv]
+package = false
+
+[tool.setuptools]
+packages = []
+
+# ============================================================================
+# Tool Configurations
+# ============================================================================
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311", "py312", "py313"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "A",      # flake8-builtins
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez
+    "RET",    # flake8-return
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line-too-long (handled by black)
+    "A003",   # builtin-attribute-shadowing
+]
+
+[tool.ruff.isort]
+known-first-party = ["reverie", "environment"]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_any_unimported = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "tests.*",
+    "migrations.*",
+    "gensim.*",
+    "nltk.*",
+    "sklearn.*",
+]
+disallow_untyped_defs = false
+ignore_errors = true
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = ["reverie", "environment"]
+skip_gitignore = true
+skip = [".git", ".venv", "venv", ".tox", "migrations"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "environment.frontend_server.settings"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--cov=reverie",
+    "--cov=environment",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--tb=short",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["reverie", "environment"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__main__.py",
+    "*/site-packages/*",
+    "*/.venv/*",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "except ImportError:",
+    "if settings.DEBUG",
+]
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.django-stubs]
+django_settings_module = "environment.frontend_server.settings"
+
+# ============================================================================
+# Dependencies Version Strategy
+# ============================================================================
+# 
+# CONFLICT RESOLUTION:
+# ────────────────────
+# Original Issue: gensim==3.8.0 requires numpy>=1.11.3,<=1.16.1
+#                 But numpy==1.25.2 is incompatible!
+# 
+# Solution: Upgraded gensim to 4.3.0+ which supports modern numpy/pandas
+#
+# Version Strategy: Using ">=X,<Y" ranges instead of "==X"
+# ────────────────────────────────────────────────────────
+# Why:
+#   - ✅ Allows security/bug fix patches (1.25.2 → 1.25.3)
+#   - ✅ Prevents installing truly ancient versions
+#   - ✅ Blocks incompatible major versions
+#   - ✅ Matches Python ecosystem best practices (PEP 440)
+# 
+# Examples:
+#   "numpy>=1.25.2,<2.0"     ← Allows 1.25.2, 1.25.3, 1.26.0, NOT 2.0
+#   "django>=2.2,<3.0"       ← Allows 2.2.0 → 2.2.28, NOT 3.0
+#   "requests>=2.26.0,<3.0"  ← Allows 2.26.0 → 2.31.0, NOT 3.0
+#
+# PACKAGES UPGRADED FOR COMPATIBILITY:
+# ────────────────────────────────────
+# gensim:        3.8.0 (2019) → 4.3.0+ (2023) 
+#                Reason: numpy version conflict
+#
+# DEPRECATED PACKAGES TO CONSIDER:
+# ────────────────────────────────
+# - Django 2.2: EOL April 2024, consider upgrading to 4.2 LTS
+# - Python 3.8: EOL October 2024, target 3.10+ for new projects
+# - boto:        Use boto3 instead (Python 3 native)
+#
+# HOW TO USE VERSION RANGES:
+# ──────────────────────────
+# For security updates:
+#   pip install --upgrade data-analysis-app
+#
+# For specific version:
+#   pip install "data-analysis-app==1.0.0"
+#
+# Lock file (reproducible installs):
+#   pip-compile pyproject.toml -o requirements-lock.txt
+#   pip install -r requirements-lock.txt

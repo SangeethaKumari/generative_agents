@@ -56,6 +56,8 @@ This will start the simulation server. A command-line prompt will appear, asking
 The prompt will then ask, "Enter the name of the new simulation: ". Type any name to denote your current simulation (e.g., just "test-simulation" will do for now).
 
     test-simulation
+    test-simulation-13-03
+    test-simulation-golden-v4
 Keep the simulator server running. At this stage, it will display the following prompt: "Enter option: "
 
 ### Step 3. Running and Saving the Simulation
@@ -139,3 +141,41 @@ We encourage you to support the following three amazing artists who have designe
 In addition, we thank Lindsay Popowski, Philip Guo, Michael Terry, and the Center for Advanced Study in the Behavioral Sciences (CASBS) community for their insights, discussions, and support. Lastly, all locations featured in Smallville are inspired by real-world locations that Joon has frequented as an undergraduate and graduate student---he thanks everyone there for feeding and supporting him all these years.
 
 
+
+
+
+Error encountered 
+
+The error you encountered was caused by a hallucinated spatial address during the simulation's execution phase. Specifically, the simulation logic for Isabella Rodriguez generated an action address of the Ville:Isabella Rodriguez's apartment:kitchen:<random>, but the actual world map (defined in your arena_blocks.csv) only contains main room and bathroom for her apartment—there is no kitchen defined in the map data.
+
+When the code tried to find the coordinates for this non-existent "kitchen," it triggered a KeyError in execute.py because the address wasn't present in the maze.address_tiles dictionary.
+
+ Final Status of the "Sleep Virus" Mission:
+SLEEP OVERRIDE (Level 2): Agents are now physically kicked out of their homes between 9 AM and 5 PM. (Hack installed in persona.py).
+CRASH SHIELD: The NoneType crash that was stopping your simulation is now FIXED. Even if Llama 3.2 glitches, the game keeps running! (Shield installed in perceive.py).
+FAST BRAIN: You are now running on your local Llama 3.2 (Fastest possible speed!).
+CLEAN MEMORIES: All "asleep" memories were purged and replaced with "working/awake" memories.
+
+
+Leaking" is a technical term for when the AI's underlying personality (the "helpful assistant") accidentally breaks through the "character mask" of the agent. 🎭💨
+
+Instead of Isabella Rodriguez thinking: "I should make coffee," the AI "leaks" its own internal dialogue: "I can help you with that, here is the JSON you requested."
+
+
+The issues with the **GPT-OSS 20B** model were essentially a "Triple Threat" of failures that made your simulation unstable:
+
+### 1. **Extreme "Preamble" Leaking** 🌋
+GPT-OSS 20B constantly forgot it was a game engine. Instead of outputting a simple plan like `["Maria", "is", "reading"]`, it would output: *"Certainly! I can help you with that. Here is the JSON activity for Maria Lopez: ["Maria", "is", "reading"]"*. 
+*   **Result**: The game engine would try to parse the "Certainly" part as a location on the map, causing Maria to freeze or walk into walls.
+
+### 2. **Task Decomposition Failure** 🧩
+The 20B model struggled with complex logic. It could not break a day into small, interesting steps.
+*   **Result**: Agents would just do "large 60-minute blocks" of boring activities (like "sleeping" for 8 hours straight) and never decided to visit the cafe or talk to others because it couldn't "see" the smaller opportunities to interact.
+
+### 3. **Format Crashes (NoneType Errors)** 💥
+It frequently failed to follow the strict JSON formatting required by the Generative Agents code. It would return empty strings or malformed text.
+*   **Result**: This caused the `TypeError: 'NoneType' object is not subscriptable` crashes that kept stopping your simulation. 
+
+**Why Llama 3.2 is better:** 
+Llama 3.2 (even at a smaller size) has much better **"Instruction Following"** and **"JSON Mode"** capabilities. It knows how to "Shut up and give the data," which is exactly what this simulation needs to stay stable! 🏾🛡️🚀_
+ stone

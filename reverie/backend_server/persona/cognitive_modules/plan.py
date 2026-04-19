@@ -197,7 +197,15 @@ def generate_action_arena(act_desp, persona, maze, act_world, act_sector):
     "bedroom 2"
   """
   if debug: print ("GNS FUNCTION: <generate_action_arena>")
-  return run_gpt_prompt_action_arena(act_desp, persona, maze, act_world, act_sector)[0]
+  gpt_resp = run_gpt_prompt_action_arena(act_desp, persona, maze, act_world, act_sector)[0]
+  
+  # Validation step: Ensure the generated arena actually exists in this sector.
+  accessible_arenas = persona.s_mem.get_str_accessible_sector_arenas(f"{act_world}:{act_sector}")
+  if gpt_resp not in accessible_arenas: 
+    if len(accessible_arenas) > 0: 
+      return accessible_arenas[0]
+  
+  return gpt_resp
 
 
 def generate_action_game_object(act_desp, act_address, persona, maze):
@@ -622,12 +630,20 @@ def _determine_action(persona, maze):
   # Finding the target location of the action and creating action-related
   # variables.
   act_world = maze.access_tile(persona.scratch.curr_tile)["world"]
-  # act_sector = maze.access_tile(persona.scratch.curr_tile)["sector"]
-  act_sector = generate_action_sector(act_desp, persona, maze)
-  act_arena = generate_action_arena(act_desp, persona, maze, act_world, act_sector)
-  act_address = f"{act_world}:{act_sector}:{act_arena}"
-  act_game_object = generate_action_game_object(act_desp, act_address,
-                                                persona, maze)
+  
+  # SLEEP OVERRIDE: If the action is sleeping, force them to their living area.
+  if "sleep" in act_desp or "asleep" in act_desp or "in bed" in act_desp:
+    act_sector = persona.scratch.living_area.split(":")[1]
+    act_arena = persona.scratch.living_area.split(":")[2]
+    act_address = f"{act_world}:{act_sector}:{act_arena}"
+    act_game_object = "bed" 
+  else:
+    act_sector = generate_action_sector(act_desp, persona, maze)
+    act_arena = generate_action_arena(act_desp, persona, maze, act_world, act_sector)
+    act_address = f"{act_world}:{act_sector}:{act_arena}"
+    act_game_object = generate_action_game_object(act_desp, act_address,
+                                                  persona, maze)
+
   new_address = f"{act_world}:{act_sector}:{act_arena}:{act_game_object}"
   act_pron = generate_action_pronunciatio(act_desp, persona)
   act_event = generate_action_event_triple(act_desp, persona)
@@ -951,7 +967,7 @@ def plan(persona, maze, personas, new_day, retrieved):
     The target action address of the persona (persona.scratch.act_address).
   """ 
   # PART 1: Generate the hourly schedule. 
-  if new_day: 
+  if new_day or not persona.scratch.f_daily_schedule: 
     _long_term_planning(persona, new_day)
 
   # PART 2: If the current action has expired, we want to create a new plan.

@@ -13,6 +13,30 @@ from path_finder import *
 from utils import *
 
 def execute(persona, maze, personas, plan): 
+  # Sanitizing the arena in the persona's act_address. 
+  # This serves as an emergency patch for hallucinated arenas.
+  if persona.scratch.act_address.startswith("<persona>"):
+    # This is a persona interaction, skip spatial sanitization
+    pass
+  else:
+    addresses = persona.scratch.act_address.split(":")
+    if len(addresses) < 3:
+      # Use fallback if address is malformed
+      act_world = addresses[0] if len(addresses) > 0 else "the Ville"
+      act_sector = addresses[1] if len(addresses) > 1 else persona.scratch.living_area.split(":")[1]
+      # Try to find a valid arena in this sector
+      accessible_arenas = persona.s_mem.get_str_accessible_sector_arenas(f"{act_world}:{act_sector}")
+      act_arena = accessible_arenas[0] if len(accessible_arenas) > 0 else ""
+      persona.scratch.act_address = f"{act_world}:{act_sector}:{act_arena}"
+    else:
+      act_world = addresses[0]
+      act_sector = addresses[1]
+      act_arena = addresses[2]
+      accessible_arenas = persona.s_mem.get_str_accessible_sector_arenas(f"{act_world}:{act_sector}")
+      if act_arena not in accessible_arenas:
+        if len(accessible_arenas) > 0:
+          persona.scratch.act_address = f"{act_world}:{act_sector}:{accessible_arenas[0]}"
+          plan = persona.scratch.act_address
   """
   Given a plan (action's string address), we execute the plan (actually 
   outputs the tile coordinate path and the next coordinate for the 
@@ -79,6 +103,8 @@ def execute(persona, maze, personas, plan):
     elif "<random>" in plan: 
       # Executing a random location action.
       plan = ":".join(plan.split(":")[:-1])
+      if plan not in maze.address_tiles: 
+        plan = ":".join(plan.split(":")[:-1])
       target_tiles = maze.address_tiles[plan]
       target_tiles = random.sample(list(target_tiles), 1)
 
@@ -88,10 +114,10 @@ def execute(persona, maze, personas, plan):
       # Retrieve the target addresses. Again, plan is an action address in its
       # string form. <maze.address_tiles> takes this and returns candidate 
       # coordinates. 
-      if plan not in maze.address_tiles: 
-        maze.address_tiles["Johnson Park:park:park garden"] #ERRORRRRRRR
-      else: 
-        target_tiles = maze.address_tiles[plan]
+      while plan not in maze.address_tiles: 
+        plan = ":".join(plan.split(":")[:-1])
+      
+      target_tiles = maze.address_tiles[plan]
 
     # There are sometimes more than one tile returned from this (e.g., a tabe
     # may stretch many coordinates). So, we sample a few here. And from that 

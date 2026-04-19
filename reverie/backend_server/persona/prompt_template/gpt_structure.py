@@ -8,10 +8,14 @@ import json
 import random
 import openai
 import time 
+import sys
+sys.path.append('../../')
 
-from utils import *
+from utils import API_KEY, API_BASE, MODEL_NAME, EMBEDDING_MODEL, OPENAI_API_KEY, OPENAI_API_BASE, get_openai_client
 
-openai.api_key = openai_api_key
+openai.api_key = API_KEY
+openai.api_base = API_BASE
+model_name = MODEL_NAME
 
 def temp_sleep(seconds=0.1):
   time.sleep(seconds)
@@ -20,10 +24,11 @@ def ChatGPT_single_request(prompt):
   temp_sleep()
 
   completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo", 
-    messages=[{"role": "user", "content": prompt}]
+    model=model_name, 
+    messages=[{"role": "user", "content": prompt}],
+    request_timeout=60
   )
-  return completion["choices"][0]["message"]["content"]
+  return completion["choices"][0]["message"]["content"] or ""
 
 
 # ============================================================================
@@ -46,10 +51,11 @@ def GPT4_request(prompt):
 
   try: 
     completion = openai.ChatCompletion.create(
-    model="gpt-4", 
-    messages=[{"role": "user", "content": prompt}]
+    model=model_name, 
+    messages=[{"role": "user", "content": prompt}],
+    request_timeout=60
     )
-    return completion["choices"][0]["message"]["content"]
+    return completion["choices"][0]["message"]["content"] or ""
   
   except: 
     print ("ChatGPT ERROR")
@@ -71,10 +77,11 @@ def ChatGPT_request(prompt):
   # temp_sleep()
   try: 
     completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo", 
-    messages=[{"role": "user", "content": prompt}]
+    model=model_name, 
+    messages=[{"role": "user", "content": prompt}],
+    request_timeout=60
     )
-    return completion["choices"][0]["message"]["content"]
+    return completion["choices"][0]["message"]["content"] or ""
   
   except: 
     print ("ChatGPT ERROR")
@@ -117,7 +124,7 @@ def GPT4_safe_generate_response(prompt,
     except: 
       pass
 
-  return False
+  return fail_safe_response
 
 
 def ChatGPT_safe_generate_response(prompt, 
@@ -161,7 +168,7 @@ def ChatGPT_safe_generate_response(prompt,
     except: 
       pass
 
-  return False
+  return fail_safe_response
 
 
 def ChatGPT_safe_generate_response_OLD(prompt, 
@@ -196,32 +203,33 @@ def ChatGPT_safe_generate_response_OLD(prompt,
 
 def GPT_request(prompt, gpt_parameter): 
   """
-  Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-  server and returns the response. 
-  ARGS:
-    prompt: a str prompt
-    gpt_parameter: a python dictionary with the keys indicating the names of  
-                   the parameter and the values indicating the parameter 
-                   values.   
-  RETURNS: 
-    a str of GPT-3's response. 
+  Given a prompt and a dictionary of GPT parameters, make a request to the server.
+  Note: This now uses ChatCompletion because most modern servers (and vLLM) 
+  only implement the Chat API.
   """
   temp_sleep()
+
+  model = gpt_parameter["engine"]
+  if model in ["text-davinci-002", "text-davinci-003"]:
+    model = model_name
+
   try: 
-    response = openai.Completion.create(
-                model=gpt_parameter["engine"],
-                prompt=prompt,
+    response = openai.ChatCompletion.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
                 temperature=gpt_parameter["temperature"],
                 max_tokens=gpt_parameter["max_tokens"],
                 top_p=gpt_parameter["top_p"],
                 frequency_penalty=gpt_parameter["frequency_penalty"],
                 presence_penalty=gpt_parameter["presence_penalty"],
-                stream=gpt_parameter["stream"],
-                stop=gpt_parameter["stop"],)
-    return response.choices[0].text
-  except: 
-    print ("TOKEN LIMIT EXCEEDED")
-    return "TOKEN LIMIT EXCEEDED"
+                stop=gpt_parameter["stop"],
+                request_timeout=60)
+    res_content = response.choices[0].message.content or ""
+    # print(f"DEBUG: GPT_request response: {res_content}")
+    return res_content
+  except Exception as e: 
+    print (f"GPT ERROR: {e}")
+    return "GPT ERROR"
 
 
 def generate_prompt(curr_input, prompt_lib_file): 
@@ -263,22 +271,46 @@ def safe_generate_response(prompt,
     print (prompt)
 
   for i in range(repeat): 
-    curr_gpt_response = GPT_request(prompt, gpt_parameter)
-    if func_validate(curr_gpt_response, prompt=prompt): 
-      return func_clean_up(curr_gpt_response, prompt=prompt)
-    if verbose: 
-      print ("---- repeat count: ", i, curr_gpt_response)
-      print (curr_gpt_response)
-      print ("~~~~")
+    try: 
+      curr_gpt_response = GPT_request(prompt, gpt_parameter)
+      if curr_gpt_response is None: 
+        curr_gpt_response = ""
+      if func_validate(curr_gpt_response, prompt=prompt): 
+        return func_clean_up(curr_gpt_response, prompt=prompt)
+      if verbose: 
+        print ("---- repeat count: ", i, curr_gpt_response)
+        print (curr_gpt_response)
+        print ("~~~~")
+    except: 
+      pass
   return fail_safe_response
 
 
-def get_embedding(text, model="text-embedding-ada-002"):
+def get_embedding(text, model=EMBEDDING_MODEL):
+  # print(f"DEBUG: get_embedding called for: {text[:20]}...")
   text = text.replace("\n", " ")
   if not text: 
     text = "this is blank"
-  return openai.Embedding.create(
-          input=[text], model=model)['data'][0]['embedding']
+  
+  # Option A: Send only embeddings to OpenAI's official API via direct requests
+  # to avoid conflict with the global openai.api_base used for Chat.
+  import requests
+  try:
+    headers = {
+      "Content-Type": "application/json",
+      "Authorization": f"Bearer {OPENAI_API_KEY}"
+    }
+    data = {"input": text, "model": model}
+    response = requests.post(f"{OPENAI_API_BASE}/embeddings", headers=headers, json=data, timeout=10)
+    if response.status_code == 200:
+      return response.json()['data'][0]['embedding']
+    else:
+      # If we get a 404/401, we want to know EXACTLY which URL was hit.
+      print(f"ERROR: Embedding API hit {OPENAI_API_BASE}/embeddings and got {response.status_code}: {response.text}")
+      return [0.0] * 1536
+  except Exception as e:
+    print(f"ERROR in get_embedding: {e}")
+    return [0.0] * 1536
 
 
 if __name__ == '__main__':
@@ -309,23 +341,3 @@ if __name__ == '__main__':
                                  True)
 
   print (output)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

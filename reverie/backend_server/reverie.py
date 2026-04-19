@@ -55,7 +55,8 @@ class ReverieServer:
     # reverie/meta/json's fork variable. 
     self.sim_code = sim_code
     sim_folder = f"{fs_storage}/{self.sim_code}"
-    copyanything(fork_folder, sim_folder)
+    if not os.path.exists(sim_folder): 
+      copyanything(fork_folder, sim_folder)
 
     with open(f"{sim_folder}/reverie/meta.json") as json_file:  
       reverie_meta = json.load(json_file)
@@ -398,6 +399,7 @@ class ReverieServer:
           #  "persona": {"Klaus Mueller": {"movement": [38, 12]}}, 
           #  "meta": {curr_time: <datetime>}}
           curr_move_file = f"{sim_folder}/movement/{self.step}.json"
+          os.makedirs(os.path.dirname(curr_move_file), exist_ok=True)
           with open(curr_move_file, "w") as outfile: 
             outfile.write(json.dumps(movements, indent=2))
 

@@ -102,10 +102,12 @@ class MemoryTree:
       return ""
 
     try: 
-      x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena]))
-    except: 
-      x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena.lower()]))
-    return x
+      return ", ".join(list(self.tree[curr_world][curr_sector][curr_arena]))
+    except KeyError: 
+      try:
+        return ", ".join(list(self.tree[curr_world][curr_sector][curr_arena.lower()]))
+      except KeyError:
+        return ""
 
 
 if __name__ == '__main__':

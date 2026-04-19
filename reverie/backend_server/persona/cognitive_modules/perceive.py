@@ -16,11 +16,19 @@ def generate_poig_score(persona, event_type, description):
   if "is idle" in description: 
     return 1
 
-  if event_type == "event": 
-    return run_gpt_prompt_event_poignancy(persona, description)[0]
-  elif event_type == "chat": 
-    return run_gpt_prompt_chat_poignancy(persona, 
-                           persona.scratch.act_description)[0]
+  try:
+    if event_type == "event": 
+      res = run_gpt_prompt_event_poignancy(persona, description)
+      if res: return res[0]
+      return 5 # Fallback score
+    elif event_type == "chat": 
+      res = run_gpt_prompt_chat_poignancy(persona, 
+                             persona.scratch.act_description)
+      if res: return res[0]
+      return 5 # Fallback score
+  except:
+    return 5 # Global fallback score
+  return 5
 
 def perceive(persona, maze): 
   """

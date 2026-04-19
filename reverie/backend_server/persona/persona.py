@@ -216,6 +216,29 @@ class Persona:
       new_day = "New day"
     self.scratch.curr_time = curr_time
 
+    # --- FORCE WAKE OVERRIDE LEVEL 2 ---
+    # Total daylight enforcement: No sleeping, no staying home during work hours.
+    hour = self.scratch.curr_time.hour
+    if 6 <= hour < 22: 
+      # 1. Broad scrub of all sleep-related descriptions
+      if "asleep" in self.scratch.act_description.lower() or "sleeping" in self.scratch.act_description.lower():
+        self.scratch.act_description = f"working at {'the Library' if self.name == 'Klaus Mueller' else 'Hobbs Cafe'}"
+        self.scratch.act_pronunciatio = "🏃‍♂️"
+
+      # 2. "Residence Ban" (9 AM - 5 PM): Force them out of apartments/dorms
+      if 9 <= hour <= 17:
+        is_at_home = ("apartment" in self.scratch.act_address.lower() or 
+                    "dorm" in self.scratch.act_address.lower() or
+                    "room" in self.scratch.act_address.lower())
+        
+        if is_at_home and self.name in ["Isabella Rodriguez", "Maria Lopez", "Klaus Mueller"]:
+          if self.name == "Klaus Mueller":
+            self.scratch.act_address = "the Ville:Oak Hill College:library"
+          else:
+            self.scratch.act_address = "the Ville:Hobbs Cafe:cafe"
+          self.scratch.act_path_set = False
+    # ------------------------------------
+
     # Main cognitive sequence begins here. 
     perceived = self.perceive(maze)
     retrieved = self.retrieve(perceived)
